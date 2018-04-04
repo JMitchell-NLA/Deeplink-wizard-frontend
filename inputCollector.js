@@ -11,6 +11,13 @@ var qstringISBN;
 var stringset;
 
 
+(function() {
+    TestMockStringSet();
+    var base = extractBaseURL(mockstringset);
+    console.log("base URL is" + base);
+})();
+
+
 //(function() {  // Main
 
 
@@ -33,14 +40,14 @@ function TestMockStringSet(){
 function extractBaseURL(stringset){
 
     var lastcommonindex = Infinity;
-    var keys = stringset.keys();
+    var keys = Object.values(stringset);
     var i,j = 0;
     var k = Infinity;
     var lCI = Infinity;
     for (i;keys.length;i++){
         var currcheck = keys[i];
         for(j;keys.length;j++){
-            if(!(keys[i].isEmpty()||keys[j].isEmpty())) {
+            if( (keys[i] && keys[j]) && !(keys[i].isEmpty()||keys[j].isEmpty())) {
                 k = findFirstDiffPos(currcheck, keys[j])
                 if (k < lCI) lCI = k;
             }
