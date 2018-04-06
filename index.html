@@ -4,8 +4,43 @@
     <meta charset="UTF-8">
     <title>Deeplinker</title>
 </head>
+<script
+        src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+<script
+        src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
+        integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30="
+        crossorigin="anonymous"></script>
 <script src="inputCollector.js"></script>
+
+<style>
+    #queryStringForm input{
+        width: 100%;
+    }
+
+</style>
+
 <body>
-<p style="text-align: center; vertical-align: center;">This is a console app, to use it open the console!</p>
+<p id="announce-header" style="text-align: center; vertical-align: center;">This is a console app, to use it open the console!</p>
+
+
+<div id="queryStringForm" class="hidden" style="display:none; margin-left:auto;margin-right:auto;">
+    <label>Title query string</label> <br/>
+    <input id="titleQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20Titles_all%20ct%2020th%20century%20China"> <br/>
+    <label>Author Title query string</label> <br/>
+    <input id="authortitleQueryField" value="optional" type="text"> <br/>
+    <label> ISBN query string</label> <br/>
+    <input id="isbnQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20(ISBN%20%2F%20ISBN_other%20%2F%20ISSN%20%2F%20issnonline)%20ct%209781612506708"> <br/>
+    <label> ISSN query field </label> <br/>
+    <input id="issnQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20(ISBN%20%2F%20ISBN_other%20%2F%20ISSN%20%2F%20issnonline)%20ct%201326-964X">
+    <button id="extractBaseURL"> Extract base URL </button> <!-- implemented -->
+    <button id="processISBN" hidden> Process ISBN string </button>
+
+</div>
+
+
+
 </body>
+
 </html>
