@@ -16,39 +16,143 @@ var stringset = {};
 
 //main
 $(document).ready(function(){
-    $('#announce-header').text("query strings plz").fadeIn().delay(500).fadeOut();
-    $('#queryStringForm').fadeIn();
 
-    $("#extractBaseURL").click(function(){
-        stringset.Title = $('#titleQueryField').val();
-        var authorTitle = $('#authortitleQueryField').val();
-        if(authorTitle !=="optional" && authorTitle.trim() !== "") {
-            stringset.AuthorTitle = authorTitle;
-        }
-        stringset.ISBN = $('#isbnQueryField').val(); // (C) I can see why even this would be much faster done as a template.
-        stringset.ISSN = $('#issnQueryField').val();
-        //$("#queryStringForm").delay(10).fadeOut();
-        //$("#announce-header").text("KTHNX").fadeIn().delay(50).fadeOut.text("");
-        // Fade in post check form
-        $("#extractBaseURL").before('<div id="baseURLcontainer" hidden><label style="font">BaseURL</label></br> \n  <input id="computedBaseURL" type="text"> </div>');
-        $("#computedBaseURL").val(extractBaseURL(stringset)).parent().fadeIn(); // this reference may need to be unmade at some stage
-        $("#processISBN").fadeIn();
+    stepOnePrompts();
+    // stepTwoPrompts(); - not implemented yet
+    //stepThreePrompts();
+    //stepFourPrompts(); - not implemented yet
 
-    });
-
-    $("#processISBN").click(function(){
-        $('#isbnQueryField').val(subOutISBN(stringset));
-    })
 
 });
 
+function stepOnePrompts(){
+
+    var $step1UI = $("#Step1UI").fadeIn().find("i").fadeOut();
+
+  $("#NUCsubmitButton").click(function () {
+      NUC = $("#NUCinput").val();
+      var NUCholder = {NUC_symbol:NUC};
+      var NUCExists;
+      $.get("/someendpoint",NUCholder).done(function (response) {
+          NUCExists = true;
+          $step1UI.find(".tick").fadeIn();
+          // IF NUC EXISTS BACKEND WILL RETURN AN OK STATUS, OTHERWISE IT WILL RETURN 404 NOT FOUND
+      }).fail(function () { NUCExists = false;
+          $step1UI.find(".cross").fadeIn();});
+  });
+}
+
+
+function stepThreePrompts() {
+    // Ask user for Query strings - needs improvement
+    $('#announce-header').text("query strings plz").fadeIn().delay(500).fadeOut();
+    // First UI elements appear
+    $('#queryStringForm').delay(900).fadeIn();
+
+    // STEP 3-1: To be fired after all strings are populated(not currently enforced) Populates a new form field with the first common substring of the other fields.
+    // This triggers the harvesting of the queryStrings from the fields and into the stringset object.
+        $("#extractBaseURL").click(function(){
+            stringset.Title = $('#titleQueryField').val();
+            var authorTitle = $('#authortitleQueryField').val();
+            if(authorTitle !=="optional" && authorTitle.trim() !== "") {
+                stringset.AuthorTitle = authorTitle;
+            }
+            stringset.ISBN = $('#isbnQueryField').val();
+            stringset.ISSN = $('#issnQueryField').val();
+            stringset.BaseURL = extractBaseURL(stringset);
+            // fades in base URL container added in the previous line.
+            $("#computedBaseURL").val(stringset.BaseURL).parent().fadeIn(); // this reference may need to be unmade at some stage
+            // Meant to change colour of next button.  Not currently working.
+            $("#processISBN").addClass("blue-boi").fadeIn();
+
+        });
+
+    // STEP 3-2 Process ISBN
+        $("#processISBN").click(function(){
+            stringset.ISBN = subOutISBN(stringset);
+            $('#isbnQueryField').animate({color:"rgba(0,0,0,0)"},100).val(stringset.ISBN).animate({color:"black"},100);
+            $("#processISBN").removeClass("blue-boi");
+            $("#processISSN").addClass("blue-boi").fadeIn();
+        });
+
+    // STEP 3-2 Process ISSN
+        $("#processISSN").click(function(){
+            $('#issnQueryField').animate({color:"rgba(0,0,0,0)"},100).val(subOutISSN(stringset)).animate({color:"black"},100);
+            //$("#processISBN").removeClass("blue-boi");
+            //$("#processISSN").fadeIn();
+            $("#titleStringHelp1").delay(1000).fadeIn();
+            $("#titleStringHelp2").delay(2800).fadeIn();
+            $("#titleTestBtn").fadeIn();
+            $("#titleResetBtn").fadeIn();
+            $("#titleSubmitBtn").fadeIn();
+            $("#titleStringTitleField").fadeIn();
+        });
+
+    /// this function is hard wired to the interface, there is a reason for that. This part cannot be accomplished without
+    /// user intervention.
+
+    var $titleTestBtn = $("#titleTestBtn");
+    var $titleSubmitBtn = $("#titleSubmitBtn");
+    var $titleStringTitleField = $("#titleStringTitleField");
+    var $titleQueryField = $("#titleQueryField");
+    var title;
+    var testURL;
+    var testWindow;
+
+    // STEP 3-4 Process title.
+    $titleTestBtn.click(function(){
+        //1. Gather replacement string from the replacement field.
+        title = $titleStringTitleField.val();
+        //2. Perform replacement operation on URL
+        testURL = $titleQueryField.val().replace(title,"fish");
+        //3. Open a new tab to the replaced title string.
+        testWindow = window.open(testURL,"_blank");
+    });
+
+    $titleSubmitBtn.click(function () {
+        stringset.Title = $titleQueryField.val().replace(($titleStringTitleField.val()),"fish").replace(stringset.BaseURL,"");
+        $titleSubmitBtn.find("svg").animate({color:"green"},400);
+        $("#titleStringHelp3").fadeIn();
+        $("#authortitleValidationDiv").delay(800).fadeIn();
+    });
+
+
+    // ---- Author title string processing.
+    // This functionality isn't strictly neccesary, so I'm slightly reluctant to test it.
+
+    var $authortitleStringTitleField = $("#authortitleStringTitleField");
+    var $authortitleStringAuthorField = $("#authortitleStringAuthorField");
+    var $authortitleTestBtn = $("#authortitleTestBtn");
+    var $authortitleSubmitBtn = $("#authortitleSubmitBtn");
+    var $authortitleQueryField = $("#authortitleQueryField");
+    // STEP 3-5 Process Author title
+    $authortitleTestBtn.click(function () {
+        var testURL = $authortitleQueryField.val().replace(($authortitleStringAuthorField.val()),"Barry Drake").replace(($authortitleStringTitleField),"Fish");
+        var testWindow = window.open(testURL,"_blank");
+    });
+
+    $authortitleSubmitBtn.click(function () {
+        if(stringset.AuthorTitle) stringset.AuthorTitle = $authortitleQueryField.val().replace(($authortitleStringAuthorField.val()),"$$AUTHOR$$").replace(($authortitleStringTitleField),"$$TITLE$$").replace(stringset.BaseURL,"");
+        $authortitleSubmitBtn.find("svg").animate({color:"green"},400);
+        $('[id^="titleStringHelp"]').fadeOut();
+        $("#titleStringHelp4").delay(800).fadeIn();
+        $("#queryStringsSubmit").delay(1200).fadeIn();
+    });
+
+    function resolveSystemID(stringset){
+        $.get("localhost:3400/querystringSubmit?",stringset); // CALLBACK TO BE ADDED TO THIS
+        // BUT FIRST WE NEED AN API FOR IT TO CALL BACK FROM.
+    }
+};
 
 
 
-    // Helper function that checks for empty strings.
+
+// HELPER FUNCTIONS
+// Helper function that checks for empty strings.
 function stringIsEmpty(a) {
     return (a.length === 0 || !a.trim());
-};
+}
 
 
 
@@ -61,16 +165,6 @@ function stringIsEmpty(a) {
         }
     }
 
-    //0.1 collect the strings supplied by the user
-
-
-         // bring in query string forms
-
-
-
-
-
-    // 1.x  Extract first common substring from provided query strings; Most likely the Base URL **WORKS**
 
     function extractBaseURL(stringset) {
         var lastcommonindex = Infinity;
@@ -88,7 +182,6 @@ function stringIsEmpty(a) {
                 }
             }
         }
-
         for (i = 0; i < keys.length; i++){
             if(!stringIsEmpty(keys[i])){
                 return keys[i].substring(0, lCI);
@@ -97,9 +190,15 @@ function stringIsEmpty(a) {
             return "";
         }
 
+
+        function findFirstDiffPos(a, b) {
+            var i = 0;
+            if (a === b) return -1;
+            while (a[i] === b[i]) i++;
+            return i;
+        }
 // TODO: Optimize by preventing the same string from being checked twice.
     }
-
 
     //2.x Process IBSN string by replacing any sequence of 10 or more  digits with $$ISBN$$  **WORKS**
     function subOutISBN(stringset){
@@ -109,61 +208,29 @@ function stringIsEmpty(a) {
             s = s.replace(/%20\d{10}/,'%20$$$ISBN$$$');
           s = s.replace(/\d{13}/g,'$$$ISBN$$$');
           s = s.replace(/\d{10}/g,'$$$ISBN$$$');
+          s = s.replace(stringset.BaseURL,"");
             return s;
         }
         return stringset.ISBN;
 }
 
     //3.x Process ISSN string by replacing any sequence of 4 digits joined by a dash to 4 other digits. OR 4 digits joined by a dash to 3 digits followed by an 'x';
-
     function subOutISSN(stringset){
         if(stringset.ISSN){
             var s = stringset.ISSN;
+            s = s.replace(/%20\d{4}-\d{4}/g,'%20$$$ISSN$$$');
+            s = s.replace(/%20\d{4}-\d{3}X/g,'%20$$$ISSN$$$');
             s = s.replace(/\d{4}-\d{4}/g,'$$$ISSN$$$');
-            s = s.replace(/\d{4}-\d{3}x/g,'$$$ISBN$$$');
+            s = s.replace(/\d{4}-\d{3}/g,'$$$ISSN$$$');
+            s = s.replace(stringset.BaseURL,"");
             return s;
         }
     }
 
-    //4.x Process the title string by asking the user to find the title.
 
-
-
-    //5.x Process the title+author string by asking the user to find the title and author strings respectively.
-
-
-
-    function findFirstDiffPos(a, b) {
-        var i = 0;
-        if (a === b) return -1;
-        while (a[i] === b[i]) i++;
-        return i;
-    }
 
 
 //})();
-
-
-//(function() {  // Main
-
-
-function borrowSpaceCodes(str){ // currently horrendously tightly coupled
-        var indicies = [];
-        var index = str.indexOf("%20");
-        var i=0;
-        var result = {};
-        while(index !== -1){
-            indicies.push(index + i*3);
-            str = str.replace("%20","");
-        }
-        result.string = str;
-        result.indicies = indicies;
-        return result;
-}
-
-
-
-
 
 //})();
 

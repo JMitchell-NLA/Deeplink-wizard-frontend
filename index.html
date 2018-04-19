@@ -3,44 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <title>Deeplinker</title>
+
+
+<!-- Library fetchers -->
+        <script
+                src="https://code.jquery.com/jquery-3.3.1.js"
+                integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+                crossorigin="anonymous"></script>
+        <script
+                src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
+                integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30="
+                crossorigin="anonymous"></script>
+        <script src="inputCollector.js"></script>
+
+        <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js" integrity="sha384-8iPTk2s/jMVj81dnzb/iFR2sdA7u06vHJyyLlAd4snFpCl/SnyUjRrbdJsw1pGIl" crossorigin="anonymous"></script>
+
+
+
+
+
+
+<!-- In-doc stylesheet -->
+    <style>
+        #queryStringForm input{
+            width: 70%;
+        }
+
+        #queryStringForm label{
+            font-family: Arial;
+            /*color: white;*/
+        }
+
+        button .blue-boi {
+            display: inline-block;
+            background-color: rgb(0, 144, 255);
+            border-radius: 0.40em;
+            color: white;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        #authortitleValidationDiv label{
+            font-size: small;
+
+        }
+
+        /*input{
+            background: rgba(0,0,0,0);
+            color: white;
+            border-width: 1px;
+            border-style: solid;
+        }*/
+
+        /*body{
+            background: linear-gradient(#D1913C,#FFD194);
+            height: 100%;
+            margin:0;
+            background-repeat: no-repeat;
+            -webkit-background-size: auto;
+            background-attachment: fixed;
+        }
+
+        p{
+            color: white;
+        } */
+    </style>
 </head>
-<script
-        src="https://code.jquery.com/jquery-3.3.1.js"
-        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-        crossorigin="anonymous"></script>
-<script
-        src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
-        integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30="
-        crossorigin="anonymous"></script>
-<script src="inputCollector.js"></script>
 
-<style>
-    #queryStringForm input{
-        width: 100%;
-    }
 
-</style>
 
 <body>
-<p id="announce-header" style="text-align: center; vertical-align: center;">This is a console app, to use it open the console!</p>
+
+    <div id="Step1UI" hidden>  <!-- Status: scaffold, no behavior yet.  -->
+        <p> Please enter the NUC symbol of the library you are deep linking </p>
+        <input id="NUCinput">
+        <button id="NUCsubmitButton"> Check NUC </button> <span class="tick" hidden><i style="color: green" class="fas fa-check" hidden></i></span> <span class="cross" hidden><i class="fas fa-times" style="color: red;" hidden></i></span>
+    </div>
+
+    <div id="Step2UI">
+
+    </div>
 
 
-<div id="queryStringForm" class="hidden" style="display:none; margin-left:auto;margin-right:auto;">
-    <label>Title query string</label> <br/>
-    <input id="titleQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20Titles_all%20ct%2020th%20century%20China"> <br/>
-    <label>Author Title query string</label> <br/>
-    <input id="authortitleQueryField" value="optional" type="text"> <br/>
-    <label> ISBN query string</label> <br/>
-    <input id="isbnQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20(ISBN%20%2F%20ISBN_other%20%2F%20ISSN%20%2F%20issnonline)%20ct%209781612506708"> <br/>
-    <label> ISSN query field </label> <br/>
-    <input id="issnQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20(ISBN%20%2F%20ISBN_other%20%2F%20ISSN%20%2F%20issnonline)%20ct%201326-964X">
-    <button id="extractBaseURL"> Extract base URL </button> <!-- implemented -->
-    <button id="processISBN" hidden> Process ISBN string </button>
+<!-- Step 3 Query Strings Processing: Only takes place if User does not select an existing system in step 2 -->
+    <div id="Step3UI" hidden>
+        <p id="announce-header" style="text-align: center; vertical-align: center;">This is a console app, to use it open the console!</p>
 
-</div>
+        <div id="queryStringForm" style="display:none; margin-left:auto;margin-right:auto;" hidden>
+            <label>Title query string</label> <br/>
+            <input id="titleQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20Titles_all%20ct%2020th%20century%20China">
+
+                <div id="titleValidationDiv">>
+                    <input id="titleStringTitleField" type="text" hidden>
+                    <button id="titleTestBtn" hidden><i class="fas fa-caret-right"></i></button> <!-- Doesn't appear until STEP 3-3 -->
+                    <button id="titleSubmitBtn" hidden><i class="fas fa-check"></i></button>  <!-- Doesn't appear until STEP 3-3 -->
+                </div><br/>
+
+            <label>Author Title query string</label> <br/>
+            <input id="authortitleQueryField" value="optional" type="text"> <br>
 
 
+            <div id="authortitleValidationDiv" hidden> <!-- Doesn't appear until STEP 3-4 -->
+                <label>The author</label> <br>
+                <input id="authortitleStringTitleField" type="text" > <br>
+                <label>The title</label> <br>
+                <input id="authortitleStringAuthorField" type="text" >
+                <button id="authortitleTestBtn" ><i class="fas fa-caret-right"></i></button>
+                <button id="authortitleSubmitBtn" ><i class="fas fa-check"></i></button>
+            </div>
 
+
+            <br/>
+            <label> ISBN query string</label> <br/>
+            <input id="isbnQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20(ISBN%20%2F%20ISBN_other%20%2F%20ISSN%20%2F%20issnonline)%20ct%209781612506708"> <br/>
+            <label> ISSN query field </label> <br/>
+            <input id="issnQueryField" type="text" value="http://opac.acer.edu.au/deeplink.aspx?TN=T8BIB&RF=sort_by_title&AC=QBE_QUERY&XC=%2Fdbtw-wpd%2Fexec%2Fdbtwpub.dll&MR=50&QY=find%20(ISBN%20%2F%20ISBN_other%20%2F%20ISSN%20%2F%20issnonline)%20ct%201326-964X">
+            <div id="stepButtonsDiv">
+                <div id="baseURLcontainer" hidden> <!-- doesn't appear until step 3-1 -->
+                    <label>BaseURL</label></br>
+                    <input id="computedBaseURL" type="text"> </div>
+
+                <button id="extractBaseURL"> Extract base URL </button> <!-- Triggers step 3-1 -->
+                <button id="processISBN" hidden> Process ISBN string </button> <!-- Triggers step 3-2 -->
+                <button id="processISSN" hidden> Process ISSN string </button> <!-- Triggers step 3-3 -->
+            </div>
+            <p id='titleStringHelp1' hidden > The program can't do this bit, so we'll need your help. <p>
+            <p id='titleStringHelp2' hidden > Copy and paste the part of the title query string that looks most like the title into the neighboring field. Then press the arrow button to check whether that's the title or not.<p>
+            <p id='titleStringHelp3' hidden > Sweet, same deal for Author Title except this time we'll need to find an author string and a title string. <p>
+            <p id='titleStringHelp4' hidden > Alright, ready to save these connection details?</p>
+            <button id="queryStringsSubmit" hidden> Submit query strings </button>
+        </div>
+    </div>
+
+    <div id="Step4UI">
+
+    </div>
 </body>
+
+
 
 </html>
